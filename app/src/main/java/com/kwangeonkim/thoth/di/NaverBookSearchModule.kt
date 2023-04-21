@@ -1,9 +1,15 @@
 package com.kwangeonkim.thoth.di
 
+import android.app.Application
+import androidx.room.Room
 import com.google.gson.GsonBuilder
 import com.kwangeonkim.thoth.BuildConfig
+import com.kwangeonkim.thoth.data.local.naver.NaverBookDatabase
 import com.kwangeonkim.thoth.data.remote.naver.NaverAuthInterceptor
 import com.kwangeonkim.thoth.data.remote.naver.NaverBookService
+import com.kwangeonkim.thoth.data.repository.NaverBookRepositoryImpl
+import com.kwangeonkim.thoth.domain.mapper.NaverBookSearchResultMapper
+import com.kwangeonkim.thoth.domain.repository.NaverBookRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -72,5 +78,35 @@ object NaverBookSearchModule {
     @Singleton
     fun provideNaverBookService(@Named("naverRetrofit") retrofit: Retrofit): NaverBookService {
         return retrofit.create(NaverBookService::class.java);
+    }
+
+    @Provides
+    @Singleton
+    fun provideNaverBookDatabase(app: Application): NaverBookDatabase {
+        return Room.databaseBuilder(
+            app,
+            NaverBookDatabase::class.java,
+            NaverBookDatabase.DATABASE_NAME
+        ).build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNaverBookSearchResultMapper(): NaverBookSearchResultMapper {
+        return NaverBookSearchResultMapper()
+    }
+
+    @Provides
+    @Singleton
+    fun provideNaverBookRepository(
+        naverBookService: NaverBookService,
+        naverBookDatabase: NaverBookDatabase,
+        naverBookSearchResultMapper: NaverBookSearchResultMapper
+    ): NaverBookRepository {
+        return NaverBookRepositoryImpl(
+            naverBookService,
+            naverBookDatabase,
+            naverBookSearchResultMapper
+        )
     }
 }

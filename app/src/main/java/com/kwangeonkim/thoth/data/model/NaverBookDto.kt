@@ -23,4 +23,19 @@ data class NaverBookDto(
     val isbn: String,
     val description: String,
     val pubdate: String
-)
+) {
+
+    companion object {
+        fun sample() = NaverBookDto(
+            title = "How to Raise Chickens (Everything You Need to Know)",
+            link = "https://search.shopping.naver.com/book/catalog/32445556675",
+            image = "https://shopping-phinf.pstatic.net/main_3244555/32445556675.20220518235446.jpg",
+            author = "",
+            discount = "26780",
+            publisher = "Motorbooks Intl",
+            isbn = "9780760328286",
+            description = "Whichever comes first for you, the chicken or the egg, this book shows you what to do next. In this hands-on, easy-to-use guidebook, longtime chicken breeder and poultry expert Christine Heinrichs tells you everything you need to know to raise chickens in your backyard?from laying out the yard and designing a coop to choosing breeds, caring for chicks, egging, sexing, and butchering.",
+            pubdate = "20070315"
+        )
+    }
+}

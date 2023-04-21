@@ -11,5 +11,9 @@ import retrofit2.http.Query
 interface NaverBookService {
 
     @GET("/v1/search/book.json")
-    suspend fun searchBooks(@Query("query") searchText: String): NaverBookSearchResultDto
+    suspend fun searchBooks(
+        @Query("query") searchText: String,
+        @Query("display") limit: Int,
+        @Query("start") offset: Int
+    ): NaverBookSearchResultDto
 }

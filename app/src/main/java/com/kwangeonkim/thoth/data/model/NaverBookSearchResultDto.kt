@@ -17,4 +17,15 @@ data class NaverBookSearchResultDto(
     @SerializedName("start") val start: Int,
     @SerializedName("display") val display: Int,
     @SerializedName("items") val items: List<NaverBookDto>
-)
+) {
+
+    companion object {
+        fun sample() = NaverBookSearchResultDto(
+            lastBuildDate = "",
+            total = 10,
+            start = 1,
+            display = 10,
+            items = List(10) { NaverBookDto.sample() }
+        )
+    }
+}
