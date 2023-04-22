@@ -83,6 +83,7 @@ fun SearchScreen(navController: NavController, viewModel: SearchViewModel = hilt
                 Spacer(modifier = Modifier.width(4.dp))
                 OutlinedButton(
                     modifier = Modifier.width(80.dp),
+                    enabled = state.text.isNotBlank(),
                     onClick = {
                         viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
                     }) {
