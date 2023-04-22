@@ -15,7 +15,7 @@ class FakeNaverBookRepositoryImpl constructor(
 ) : NaverBookRepository {
 
     var text = ""
-    val searchTexts = LruCache<String, Nothing?>(10)
+    val searchTexts = LruCache<String, String>(10)
 
     // Search result
     private val _naverBooks = MutableStateFlow<List<NaverBook>>(

@@ -12,6 +12,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.kwangeonkim.thoth.data.remote.naver.NaverBookService
 import com.kwangeonkim.thoth.presentation.screen.Screen
+import com.kwangeonkim.thoth.presentation.screen.recent_search_screen.composable.RecentSearchScreen
 import com.kwangeonkim.thoth.presentation.screen.search_screen.SearchScreen
 import com.kwangeonkim.thoth.presentation.theme.ThothTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -35,12 +36,16 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(
                         navController = navController,
-                        startDestination = Screen.SearchScreen.route
+                        startDestination = Screen.SearchScreen.route,
                     ) {
                         composable(route = Screen.SearchScreen.route) {
-                            SearchScreen(navController = navController)
+                            SearchScreen(
+                                navController = navController,
+                                savedStateHandle = it.savedStateHandle
+                            )
                         }
                         composable(route = Screen.RecentSearchScreen.route) {
+                            RecentSearchScreen(navController = navController)
                         }
                     }
                 }

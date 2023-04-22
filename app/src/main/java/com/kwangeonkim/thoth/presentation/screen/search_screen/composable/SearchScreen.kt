@@ -18,6 +18,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.kwangeonkim.thoth.data.repository.fake_repository.FakeNaverBookRepositoryImpl
@@ -28,13 +29,22 @@ import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchScreen(navController: NavController, viewModel: SearchViewModel = hiltViewModel()) {
+fun SearchScreen(
+    navController: NavController,
+    viewModel: SearchViewModel = hiltViewModel(),
+    savedStateHandle: SavedStateHandle
+) {
 
     val state = viewModel.state.value
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
 
     LaunchedEffect(key1 = true) {
+        savedStateHandle.get<String>("text")?.let {
+            viewModel.fireEvent(SearchEvent.SearchTextFormFieldValueChangedEvent(it))
+            viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
+        }
+
         viewModel.eventFlow.collectLatest {
             when (it) {
                 is SearchUiEvent.MoveToBookWebPageEvent -> {
@@ -128,7 +138,8 @@ fun SearchScreenPreview() {
                 FakeNaverBookRepositoryImpl(
                     NaverBookSearchResultMapper()
                 )
-            )
+            ),
+            savedStateHandle = SavedStateHandle()
         )
     }
 }

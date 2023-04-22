@@ -60,7 +60,7 @@ class SearchViewModel @Inject constructor(
     }
 
     private fun onRecentSearchesButtonTappedCallback() {
-
+        viewModelScope.launch { _eventFlow.emit(SearchUiEvent.MoveToRecentSearchesScreenEvent) }
     }
 
     private fun onBookListTileTappedCallback(book: NaverBook) {
