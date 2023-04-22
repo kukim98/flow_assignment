@@ -24,7 +24,10 @@ class NaverBookRepositoryImpl constructor(
 
     // Search result
     private val _naverBooks = MutableStateFlow<List<NaverBook>>(emptyList())
-    val naverBooks get(): StateFlow<List<NaverBook>> = _naverBooks
+
+    override fun getBooks(): StateFlow<List<NaverBook>> {
+        return _naverBooks
+    }
 
     override suspend fun searchBooks(text: String) {
         // Make network query

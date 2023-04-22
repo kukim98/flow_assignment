@@ -1,26 +1,39 @@
 package com.kwangeonkim.thoth.data.repository.fake_repository
 
 import android.util.LruCache
-import com.kwangeonkim.thoth.data.local.naver.NaverBookDatabase
-import com.kwangeonkim.thoth.data.local.naver.dto.NaverBookSearchTextDto
-import com.kwangeonkim.thoth.data.model.NaverBookDto
 import com.kwangeonkim.thoth.data.model.NaverBookSearchResultDto
-import com.kwangeonkim.thoth.data.remote.naver.NaverBookService
 import com.kwangeonkim.thoth.domain.mapper.NaverBookSearchResultMapper
 import com.kwangeonkim.thoth.domain.model.NaverBook
 import com.kwangeonkim.thoth.domain.repository.NaverBookRepository
-import kotlinx.coroutines.flow.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asFlow
 
 class FakeNaverBookRepositoryImpl constructor(
     val naverBookSearchResultMapper: NaverBookSearchResultMapper
-): NaverBookRepository {
+) : NaverBookRepository {
 
     var text = ""
     val searchTexts = LruCache<String, Nothing?>(10)
 
     // Search result
-    private val _naverBooks = MutableStateFlow<List<NaverBook>>(emptyList())
-    val naverBooks get(): StateFlow<List<NaverBook>> = _naverBooks
+    private val _naverBooks = MutableStateFlow<List<NaverBook>>(
+        listOf(
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample(),
+            NaverBook.sample()
+        )
+    )
+
+    override fun getBooks(): StateFlow<List<NaverBook>> {
+        return _naverBooks
+    }
 
     override suspend fun searchBooks(text: String) {
         // Mock network query
