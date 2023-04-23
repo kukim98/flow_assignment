@@ -10,21 +10,30 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.PreviewParameter
+import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.SavedStateHandle
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.kwangeonkim.thoth.R
 import com.kwangeonkim.thoth.data.repository.fake_repository.FakeNaverBookRepositoryImpl
 import com.kwangeonkim.thoth.domain.mapper.NaverBookSearchResultMapper
+import com.kwangeonkim.thoth.domain.model.NaverBook
+import com.kwangeonkim.thoth.presentation.Resource
 import com.kwangeonkim.thoth.presentation.screen.Screen
 import com.kwangeonkim.thoth.presentation.theme.ThothTheme
+import com.kwangeonkim.thoth.presentation.widget.LoadingWidget
+import com.kwangeonkim.thoth.presentation.widget.SingleImageContainerWidget
 import kotlinx.coroutines.flow.collectLatest
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,6 +47,7 @@ fun SearchScreen(
     val state = viewModel.state.value
     val context = LocalContext.current
     val focusManager = LocalFocusManager.current
+    val books = viewModel.books.collectAsState().value
 
     LaunchedEffect(key1 = true) {
         savedStateHandle.get<String>("text")?.let {
@@ -60,6 +70,13 @@ fun SearchScreen(
         }
     }
 
+    LaunchedEffect(state.lazyListState) {
+        state.lazyListState.scrollToItem(
+            state.lazyListState.firstVisibleItemIndex,
+            state.lazyListState.firstVisibleItemScrollOffset
+        )
+    }
+
     Scaffold(topBar = {
         TopAppBar(title = { Text(text = "책 검색") }, actions = {
             TextButton(onClick = { viewModel.fireEvent(SearchEvent.RecentSearchesButtonTappedEvent) }) {
@@ -71,74 +88,146 @@ fun SearchScreen(
             modifier = Modifier
                 .padding(it)
                 .padding(16.dp)
+                .fillMaxWidth()
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(4.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextField(
-                    value = state.text,
-                    onValueChange = {
-                        viewModel.fireEvent(
-                            SearchEvent.SearchTextFormFieldValueChangedEvent(it)
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val width = maxWidth
+                val buttonSize = 100.dp
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .padding(4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextField(
+                        modifier = Modifier.width(width - buttonSize),
+                        value = state.text,
+                        onValueChange = {
+                            viewModel.fireEvent(
+                                SearchEvent.SearchTextFormFieldValueChangedEvent(it)
+                            )
+                        },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        keyboardActions = KeyboardActions {
+                            viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
+                        })
+                    Spacer(modifier = Modifier.width(4.dp))
+                    OutlinedButton(
+                        modifier = Modifier.wrapContentWidth(),
+                        enabled = state.text.isNotBlank(),
+                        onClick = {
+                            viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
+                        }) {
+                        Text(
+                            modifier = Modifier.width(buttonSize),
+                            textAlign = TextAlign.Center,
+                            text = "검색",
+                            maxLines = 1
                         )
-                    },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    keyboardActions = KeyboardActions {
-                        viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
-                    })
-                Spacer(modifier = Modifier.width(4.dp))
-                OutlinedButton(
-                    modifier = Modifier.width(80.dp),
-                    enabled = state.text.isNotBlank(),
-                    onClick = {
-                        viewModel.fireEvent(SearchEvent.SearchButtonTappedEvent)
-                    }) {
-                    Text(
-                        modifier = Modifier
-                            .wrapContentSize(),
-                        text = "검색",
-                        maxLines = 1
-                    )
+                    }
                 }
             }
-            LazyColumn(modifier = Modifier
-                .fillMaxWidth(), state = state.lazyListState, content = {
-                items(state.searchResult.size) {
-                    if (it > state.searchResult.size - 2) {
-                        viewModel.fireEvent(SearchEvent.ScrollReachedNearBottomEvent)
+
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                LazyColumn(modifier = Modifier
+                    .fillMaxWidth(),
+                    state = state.lazyListState,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    content = {
+                        items(books.size) {
+                            val book = books[it]
+                            BookListTile(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .heightIn(max = 200.dp)
+                                    .clickable {
+                                        viewModel.fireEvent(
+                                            SearchEvent.BookListTileTappedEvent(book)
+                                        )
+                                    }, book = book
+                            )
+                            if (it == books.size - 1 && !state.noMoreQuery) {
+                                CircularProgressIndicator()
+                            }
+                            if (it == books.size - 1 && !state.noMoreQuery && state.searchStatus != Resource.Loading) {
+                                viewModel.fireEvent(SearchEvent.ScrollReachedNearBottomEvent)
+                            }
+                        }
+                    })
+                when (state.searchStatus) {
+                    is Resource.Loading -> {
+                        if (state.displaySearchStatusInFull)
+                            LoadingWidget(modifier = Modifier.fillMaxSize())
                     }
-                    val book = state.searchResult[it]
-                    BookListTile(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 200.dp)
-                            .clickable {
-                                viewModel.fireEvent(
-                                    SearchEvent.BookListTileTappedEvent(book)
-                                )
-                            }, book = book
-                    )
+                    is Resource.Success -> Unit
+                    is Resource.Failure -> {
+                        if (state.displaySearchStatusInFull)
+                            SingleImageContainerWidget(
+                                modifier = Modifier
+                                    .padding(it)
+                                    .padding(16.dp)
+                                    .fillMaxSize(),
+                                id = R.drawable.looney_detective_looking_through_a_magnifying_glass,
+                                description = (state.searchStatus as Resource.Failure).message
+                            )
+                        else
+                            LoadingWidget(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp)
+                            )
+                    }
                 }
-            })
+            }
         }
     }
 }
 
+class SearchScreenPreviewViewModelProvider : PreviewParameterProvider<SearchViewModel> {
+    override val values = sequenceOf(
+        SearchViewModel(
+            FakeNaverBookRepositoryImpl(
+                NaverBookSearchResultMapper()
+            )
+        ),
+        SearchViewModel(
+            FakeNaverBookRepositoryImpl(
+                NaverBookSearchResultMapper()
+            ).apply {
+                text = "Chicken"
+                naverBooks.value = listOf(
+                    NaverBook.sample(),
+                    NaverBook.sample(),
+                    NaverBook.sample(),
+                    NaverBook.sample(),
+                    NaverBook.sample()
+                )
+            }
+        ),
+        SearchViewModel(
+            FakeNaverBookRepositoryImpl(
+                NaverBookSearchResultMapper()
+            ).apply {
+                text = "Example"
+            }
+        )
+    )
+}
+
 @Preview
 @Composable
-fun SearchScreenPreview() {
+fun SearchScreenPreview(
+    @PreviewParameter(SearchScreenPreviewViewModelProvider::class) viewModel: SearchViewModel
+) {
     ThothTheme {
         SearchScreen(
             navController = rememberNavController(),
-            viewModel = SearchViewModel(
-                FakeNaverBookRepositoryImpl(
-                    NaverBookSearchResultMapper()
-                )
-            ),
+            viewModel = viewModel,
             savedStateHandle = SavedStateHandle()
         )
     }

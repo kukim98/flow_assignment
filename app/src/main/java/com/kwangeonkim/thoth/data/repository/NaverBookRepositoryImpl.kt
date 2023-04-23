@@ -18,9 +18,9 @@ class NaverBookRepositoryImpl constructor(
 ) : NaverBookRepository {
 
     // Search parameters
-    var text: String = ""
-    var limit: Int = 10
-    var offset: Int = 1
+    private var text: String = ""
+    private var limit: Int = 10
+    private var offset: Int = 1
 
     // Search result
     private val _naverBooks = MutableStateFlow<List<NaverBook>>(emptyList())
@@ -29,21 +29,30 @@ class NaverBookRepositoryImpl constructor(
         return _naverBooks
     }
 
-    override suspend fun searchBooks(text: String) {
+    override suspend fun searchBooks(text: String): Boolean {
+
+        // Clear existing search result and parameter if given different text
+        if (this@NaverBookRepositoryImpl.text != text) {
+            _naverBooks.value = emptyList()
+            this@NaverBookRepositoryImpl.offset = 1
+        }
+
         // Make network query
         val naverBookSearchResultDto = naverBookService.searchBooks(text, limit, offset)
 
+        val result = naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
+
         // Update search result conditionally
-        if (this.text != text) {
-            _naverBooks.value = naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
+        if (this@NaverBookRepositoryImpl.text != text) {
+            _naverBooks.value = result
         } else {
             _naverBooks.value =
-                _naverBooks.value + naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
+                (_naverBooks.value ?: emptyList()) + result
         }
 
         // Update search parameters
-        this.text = text
-        this.offset += limit
+        this@NaverBookRepositoryImpl.text = text
+        this@NaverBookRepositoryImpl.offset += limit
 
         // Update LRU local cache
         naverBookDatabase.naverBookSearchDao.insertSearchText(
@@ -52,6 +61,9 @@ class NaverBookRepositoryImpl constructor(
                 timestamp = System.currentTimeMillis()
             )
         )
+
+        // true if no more data to query; false otherwise.
+        return result.isEmpty()
     }
 
     override fun getTopTenRecentSearchTexts(): Flow<List<String>> {

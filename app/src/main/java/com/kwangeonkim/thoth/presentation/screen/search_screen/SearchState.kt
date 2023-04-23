@@ -1,15 +1,33 @@
 package com.kwangeonkim.thoth.presentation.screen.search_screen
 
-import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import com.kwangeonkim.thoth.domain.model.NaverBook
+import com.kwangeonkim.thoth.presentation.Resource
 
+/**
+ * Search Screen state.
+ *
+ * @property text the current text in the search form field
+ * @property lastSearchText the text that the current search is based in; required to make subsequent queries
+ * @property lazyListState scroll state of the lazy column
+ * @property searchStatus network query status to get search results
+ * @property displaySearchStatusInFull true if status should be shown in full
+ */
 data class SearchState(
-    val text: String,
-    val searchResult: List<NaverBook>,
-    val lazyListState: LazyListState
+    var text: String,
+    var lastSearchText: String,
+    var lazyListState: LazyListState,
+    var searchStatus: Resource<Nothing>,
+    var noMoreQuery: Boolean,
+    var displaySearchStatusInFull: Boolean
 ) {
 
-    constructor() : this(text = "", searchResult = emptyList(), lazyListState = LazyListState())
+    constructor() : this(
+        text = "",
+        lastSearchText = "",
+        lazyListState = LazyListState(),
+        searchStatus = Resource.Success(null),
+        noMoreQuery = false,
+        displaySearchStatusInFull = true
+    )
 }

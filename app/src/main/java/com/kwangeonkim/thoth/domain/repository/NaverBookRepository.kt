@@ -8,7 +8,7 @@ interface NaverBookRepository {
 
     fun getBooks(): StateFlow<List<NaverBook>>
 
-    suspend fun searchBooks(text: String)
+    suspend fun searchBooks(text: String): Boolean
 
     fun getTopTenRecentSearchTexts(): Flow<List<String>>
 }

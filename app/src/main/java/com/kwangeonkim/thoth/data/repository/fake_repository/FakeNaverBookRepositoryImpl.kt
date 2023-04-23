@@ -18,38 +18,29 @@ class FakeNaverBookRepositoryImpl constructor(
     val searchTexts = LruCache<String, String>(10)
 
     // Search result
-    private val _naverBooks = MutableStateFlow<List<NaverBook>>(
-        listOf(
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample(),
-            NaverBook.sample()
-        )
-    )
+    val naverBooks = MutableStateFlow<List<NaverBook>>(emptyList())
 
     override fun getBooks(): StateFlow<List<NaverBook>> {
-        return _naverBooks
+        return naverBooks
     }
 
-    override suspend fun searchBooks(text: String) {
+    override suspend fun searchBooks(text: String): Boolean {
         // Mock network query
         val naverBookSearchResultDto = NaverBookSearchResultDto.sample()
 
         // Conditional Update
         if (this.text != text) {
-            _naverBooks.value = naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
+            naverBooks.value = naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
         } else {
-            _naverBooks.value =
-                _naverBooks.value + naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
+            naverBooks.value =
+                naverBooks.value + naverBookSearchResultMapper.toUiModel(naverBookSearchResultDto)
         }
 
         // Mock LRU local cache update
         this.text = text
         searchTexts.put(text, null)
+
+        return true
     }
 
     override fun getTopTenRecentSearchTexts(): Flow<List<String>> {
