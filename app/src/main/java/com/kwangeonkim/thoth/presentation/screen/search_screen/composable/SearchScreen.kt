@@ -175,12 +175,6 @@ fun SearchScreen(
                                 id = R.drawable.looney_15,
                                 description = (state.searchStatus as Resource.Failure).message
                             )
-                        else
-                            LoadingWidget(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp)
-                            )
                     }
                 }
             }
