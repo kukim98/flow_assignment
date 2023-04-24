@@ -12,6 +12,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -70,11 +71,19 @@ class SearchViewModel @Inject constructor(
                         noMoreQuery = it
                     )
                 }
-            } catch (exception: Error) {
-                val message = exception.message ?: "에러"
-                _state.value = _state.value.copy(
-                    searchStatus = Resource.Failure(message)
-                )
+            } catch (throwable: Throwable) {
+                when (throwable) {
+                    is IOException -> {
+                        _state.value = _state.value.copy(
+                            searchStatus = Resource.Failure("ERROR: Check your Internet Connection")
+                        )
+                    }
+                    else -> {
+                        _state.value = _state.value.copy(
+                            searchStatus = Resource.Failure("ERROR: Try again")
+                        )
+                    }
+                }
             }
         }
     }
@@ -101,11 +110,19 @@ class SearchViewModel @Inject constructor(
                         noMoreQuery = it
                     )
                 }
-            } catch (exception: Error) {
-                val message = exception.message ?: "에러"
-                _state.value = _state.value.copy(
-                    searchStatus = Resource.Failure(message)
-                )
+            } catch (throwable: Throwable) {
+                when (throwable) {
+                    is IOException -> {
+                        _state.value = _state.value.copy(
+                            searchStatus = Resource.Failure("ERROR: Check your Internet Connection")
+                        )
+                    }
+                    else -> {
+                        _state.value = _state.value.copy(
+                            searchStatus = Resource.Failure("ERROR: Try again")
+                        )
+                    }
+                }
             }
         }
     }

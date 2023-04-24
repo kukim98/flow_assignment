@@ -144,7 +144,7 @@ fun SearchScreen(
                             BookListTile(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .heightIn(max = 200.dp)
+                                    .height(200.dp)
                                     .clickable {
                                         viewModel.fireEvent(
                                             SearchEvent.BookListTileTappedEvent(book)
@@ -172,7 +172,7 @@ fun SearchScreen(
                                     .padding(it)
                                     .padding(16.dp)
                                     .fillMaxSize(),
-                                id = R.drawable.looney_detective_looking_through_a_magnifying_glass,
+                                id = R.drawable.looney_15,
                                 description = (state.searchStatus as Resource.Failure).message
                             )
                         else

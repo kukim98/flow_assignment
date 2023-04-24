@@ -5,6 +5,7 @@ import com.kwangeonkim.thoth.data.model.NaverBookSearchResultDto
 import com.kwangeonkim.thoth.domain.mapper.NaverBookSearchResultMapper
 import com.kwangeonkim.thoth.domain.model.NaverBook
 import com.kwangeonkim.thoth.domain.repository.NaverBookRepository
+import com.kwangeonkim.thoth.presentation.Resource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
